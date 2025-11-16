@@ -1,15 +1,32 @@
 import authSeller from "@/middlewares/authSeller"
 import { getAuth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
+import dbConnect from "@/lib/mongodb"
+import Product from "@/lib/models/Product"
+import ImageKit from "imagekit"
+
+// Initialize ImageKit
+const imagekit = new ImageKit({
+  publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT,
+})
 
 // Add a new product
-export async function POST(request){
+export async function POST(request) {
     try {
-        const userId = getAuth(request)
+        await dbConnect()
+
+        const { userId } = getAuth(request)
+
+        if (!userId) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const storeId = await authSeller(userId)
 
-        if(!storeId){
-            return NextResponse.json({ error: 'not authorized' }, { status: 401 })
+        if (!storeId) {
+            return NextResponse.json({ error: 'Not authorized' }, { status: 401 })
         }
 
         // Get the data from the form
@@ -19,77 +36,79 @@ export async function POST(request){
         const mrp = Number(formData.get('mrp'))
         const price = Number(formData.get('price'))
         const category = formData.get('category')
-        const images = formData.getAll('images') // Assuming multiple images can be uploaded
+        const images = formData.getAll('images') // Multiple images
 
-        if(!name || !description || !mrp || !price || !category || images.length === 0){
-            return NextResponse.json({ error: 'Not authorised' }, { status: 400 })
+        if (!name || !description || !mrp || !price || !category || images.length === 0) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
         }
 
-        //uploading images to Imagekit
-        const imagesUrl = await Promise.all(images.map(async(image)=>{
-
-            const buffer = Buffer.from(await image.arrayBuffer()) ;
+        // Uploading images to ImageKit
+        const imagesUrl = await Promise.all(images.map(async (image) => {
+            const buffer = Buffer.from(await image.arrayBuffer())
             const response = await imagekit.upload({
-                file:buffer,
-                fileName:image.name,
-                folder:"products",
+                file: buffer,
+                fileName: image.name,
+                folder: "products",
             })
 
             const url = imagekit.url({
-
-                path:response.filepath,
-                transformation:[
-                    {quality:'auto'},
-                    {format:'webp'},
-                    {width:'1024'}
+                path: response.filePath,  // Fixed: filePath not filepath
+                transformation: [
+                    { quality: 'auto' },
+                    { format: 'webp' },
+                    { width: '1024' }
                 ]
-
             })
 
             return url
-
         }))
 
-        await prisma.product.create({
-
-            data:{
-                name,
-                description,
-                mrp,
-                price,
-                category,
-                images:imagesUrl,
-                storeId
-            }
-
+        // Create product with Mongoose
+        await Product.create({
+            name,
+            description,
+            mrp,
+            price,
+            category,
+            images: imagesUrl,
+            storeId
         })
 
-        return NextResponse.json({message:"Product added successfully"})
+        return NextResponse.json({ message: "Product added successfully" })
 
     } catch (error) {
-
-        console.error(error);
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
-
+        console.error(error)
+        return NextResponse.json({ 
+            error: error.code || error.message 
+        }, { status: 500 })
     }
 }
 
-
-
 // Get all products for a seller
-export async function GET(request){
+export async function GET(request) {
     try {
-        const userId = getAuth(request)
+        await dbConnect()
+
+        const { userId } = getAuth(request)
+
+        if (!userId) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         const storeId = await authSeller(userId)
 
-        if(!storeId){
-            return NextResponse.json({ error: 'not authorized'}, { status: 401 })
+        if (!storeId) {
+            return NextResponse.json({ error: 'Not authorized' }, { status: 401 })
         }
-        const products = await prisma.product.findMany({ where: { storeId }})
 
-        return NextResponse.json({products})
+        const products = await Product.find({ storeId: storeId }).lean()
+
+        return NextResponse.json({ products })
+
     } catch (error) {
-        console.error(error);
-        return NextResponse.json({ error: error.code || error.message }, { status: 400 })
+        console.error(error)
+        return NextResponse.json({ 
+            error: error.code || error.message 
+        }, { status: 500 })
     }
-} 
+}

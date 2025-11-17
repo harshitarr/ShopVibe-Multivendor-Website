@@ -5,7 +5,8 @@ import { NextResponse } from "next/server";
 // Auth Admin
 export async function GET(request) {
   try {
-    const userId = getAuth(request);
+    const { userId } = getAuth(request);
+
     const isAdmin = await authAdmin(userId);
 
     if (!isAdmin) {
@@ -15,6 +16,6 @@ export async function GET(request) {
     return NextResponse.json({ isAdmin });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: error.code||error.message }, { status: 400 });
+    return NextResponse.json({ error: error.code || error.message }, { status: 400 });
   }
 }

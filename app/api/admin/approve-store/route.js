@@ -3,6 +3,8 @@ import { getAuth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Store from '@/lib/models/Store';
+import User from '@/lib/models/User'; 
+
 
 // Approve Seller
 export async function POST(request) {
@@ -29,15 +31,21 @@ export async function POST(request) {
       });
     }
 
-    return NextResponse.json({ message: status + ' Store status updated successfully' });
+    return NextResponse.json({
+      message: `${status} Store status updated successfully`
+    });
 
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: error.code || error.message }, { status: 400 });
+    return NextResponse.json(
+      { error: error.code || error.message },
+      { status: 400 }
+    );
   }
 }
 
-// get all pending and rejected stores
+
+// Get all pending and rejected stores
 export async function GET(request) {
   try {
     await dbConnect();
@@ -52,13 +60,22 @@ export async function GET(request) {
     const stores = await Store.find({
       status: { $in: ["pending", "rejected"] }
     })
-    .populate('userId')
+    .populate('userId')   // ✅ Works now because User model is imported
     .lean();
 
-    return NextResponse.json({ stores });
+    // Transform the data to match the expected structure in the component
+    const transformedStores = stores.map(store => ({
+      ...store,
+      user: store.userId // Map userId to user for component compatibility
+    }));
+
+    return NextResponse.json({ stores: transformedStores });
 
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: error.code || error.message }, { status: 400 });
+    return NextResponse.json(
+      { error: error.code || error.message },
+      { status: 400 }
+    );
   }
 }

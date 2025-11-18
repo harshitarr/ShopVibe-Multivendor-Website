@@ -1,6 +1,7 @@
 import { inngest } from './client'
 import dbConnect from '@/lib/mongodb'
 import User from '@/lib/models/User'
+import Coupon from '@/lib/models/Coupon'
 
 // Inngest Function to save user data to database
 export const syncUserCreation = inngest.createFunction(
@@ -50,5 +51,23 @@ export const syncUserDeletion = inngest.createFunction(
     
     const { data } = event;
     await User.findByIdAndDelete(data.id);
+  }
+)
+
+// Inngest Function to delete coupon on expiry
+export const deleteCouponOnExpiry = inngest.createFunction(
+  { id: 'delete-coupon-on-expiry' },
+  { event: 'app/coupon.expired' },
+  async ({ event, step }) => {
+    const { data } = event
+    const expiryDate = new Date(data.expires_at)
+    await step.sleepUntil('wait-for-expiry', expiryDate)
+
+    await step.run('delete-coupon-from-database', async () => {
+      await dbConnect(); // Connect to MongoDB
+      await Coupon.findOneAndDelete({
+        code: data.code
+      })
+    })
   }
 )

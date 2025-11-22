@@ -29,7 +29,7 @@ export async function GET(request) {
     const products = await Product.find({
       storeId: store._id.toString()
     })
-    .populate('rating')
+    .populate('ratings')
     .lean();
 
     // Add products to store object

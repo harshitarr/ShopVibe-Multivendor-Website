@@ -14,6 +14,21 @@ export default function StoreOrders() {
 
     const {getToken} = useAuth()
 
+    // Helper function to format customer name
+    const formatCustomerName = (user) => {
+        if (!user?.name) return 'N/A';
+        
+        // Split by spaces and filter out null, empty, and "null" string values
+        const nameParts = user.name.split(' ').filter(part => 
+            part && 
+            part.trim() !== '' && 
+            part.toLowerCase() !== 'null' && 
+            part !== 'undefined'
+        );
+        
+        return nameParts.length > 0 ? nameParts.join(' ') : 'N/A';
+    }
+
     const fetchOrders = async () => {
 
         try {
@@ -38,8 +53,11 @@ export default function StoreOrders() {
         try {
 
             const token = await getToken()
-            await axios.post('/api/store/orders',{headers: {Authorization: `Bearer ${token}`}})
-            setOrders(prev=> prev.map(order=> order.id === orderId ? {...order, status} : order))
+            await axios.post('/api/store/orders', 
+                { orderId, status }, 
+                { headers: { Authorization: `Bearer ${token}` }}
+            )
+            setOrders(prev=> prev.map(order=> order._id === orderId ? {...order, status} : order))
             toast.success("Order status updated")
             
         } catch (error) {
@@ -84,14 +102,14 @@ export default function StoreOrders() {
                         <tbody className="divide-y divide-gray-100">
                             {orders.map((order, index) => (
                                 <tr
-                                    key={order.id}
+                                    key={order._id}
                                     className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
                                     onClick={() => openModal(order)}
                                 >
                                     <td className="pl-6 text-green-600" >
                                         {index + 1}
                                     </td>
-                                    <td className="px-4 py-3">{order.user?.name}</td>
+                                    <td className="px-4 py-3">{formatCustomerName(order.user)}</td>
                                     <td className="px-4 py-3 font-medium text-slate-800">${order.total}</td>
                                     <td className="px-4 py-3">{order.paymentMethod}</td>
                                     <td className="px-4 py-3">
@@ -106,7 +124,7 @@ export default function StoreOrders() {
                                     <td className="px-4 py-3" onClick={(e) => { e.stopPropagation() }}>
                                         <select
                                             value={order.status}
-                                            onChange={e => updateOrderStatus(order.id, e.target.value)}
+                                            onChange={e => updateOrderStatus(order._id, e.target.value)}
                                             className="border-gray-300 rounded-md text-sm focus:ring focus:ring-blue-200"
                                         >
                                             <option value="ORDER_PLACED">ORDER_PLACED</option>
@@ -136,7 +154,7 @@ export default function StoreOrders() {
                         {/* Customer Details */}
                         <div className="mb-4">
                             <h3 className="font-semibold mb-2">Customer Details</h3>
-                            <p><span className="text-green-700">Name:</span> {selectedOrder.user?.name}</p>
+                            <p><span className="text-green-700">Name:</span> {formatCustomerName(selectedOrder.user)}</p>
                             <p><span className="text-green-700">Email:</span> {selectedOrder.user?.email}</p>
                             <p><span className="text-green-700">Phone:</span> {selectedOrder.address?.phone}</p>
                             <p><span className="text-green-700">Address:</span> {`${selectedOrder.address?.street}, ${selectedOrder.address?.city}, ${selectedOrder.address?.state}, ${selectedOrder.address?.zip}, ${selectedOrder.address?.country}`}</p>
@@ -146,20 +164,31 @@ export default function StoreOrders() {
                         <div className="mb-4">
                             <h3 className="font-semibold mb-2">Products</h3>
                             <div className="space-y-2">
-                                {selectedOrder.orderItems.map((item, i) => (
-                                    <div key={i} className="flex items-center gap-4 border border-slate-100 shadow rounded p-2">
-                                        <img
-                                            src={item.product.images?.[0].src || item.product.images?.[0]}
-                                            alt={item.product?.name}
-                                            className="w-16 h-16 object-cover rounded"
-                                        />
-                                        <div className="flex-1">
-                                            <p className="text-slate-800">{item.product?.name}</p>
-                                            <p>Qty: {item.quantity}</p>
-                                            <p>Price: ${item.price}</p>
+                                {selectedOrder.orderItems?.map((item, i) => {
+                                    // Debug: log the item structure
+                                    console.log('Store order item:', item);
+                                    console.log('Product data:', item.product);
+                                    console.log('Product images:', item.product?.images);
+                                    
+                                    return (
+                                        <div key={item._id || `${selectedOrder._id}-${i}`} className="flex items-center gap-4 border border-slate-100 shadow rounded p-2">
+                                            <img
+                                                src={item.product?.images?.[0] || '/placeholder.png'}
+                                                alt={item.product?.name || 'Product'}
+                                                className="w-16 h-16 object-cover rounded"
+                                                onError={(e) => {
+                                                    console.log('Image failed to load:', e.target.src);
+                                                    e.target.src = '/placeholder.png';
+                                                }}
+                                            />
+                                            <div className="flex-1">
+                                                <p className="text-slate-800">{item.product?.name || 'Product Name Unavailable'}</p>
+                                                <p>Qty: {item.quantity || 0}</p>
+                                                <p>Price: ${item.price || 0}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
 

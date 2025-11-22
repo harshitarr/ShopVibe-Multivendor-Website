@@ -3,6 +3,9 @@ import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
+import OrderItem from "@/lib/models/OrderItem";
+import User from "@/lib/models/User";
+import Address from "@/lib/models/Address";
 
 // Update seller order status
 export async function POST(request) {
@@ -66,19 +69,46 @@ export async function GET(request) {
     }
 
     const orders = await Order.find({ storeId: storeId })
-      .populate('userId', 'name email image')  // Populate user details
-      .populate('addressId')  // Populate address details
-      .populate({
-        path: 'orderItems',
-        populate: {
-          path: 'productId',
-          model: 'Product'
-        }
-      })
       .sort({ createdAt: -1 })
       .lean();
 
-    return NextResponse.json({ orders });
+    // Fetch order items, user data, and address data separately for each order
+    const ordersWithItems = await Promise.all(
+      orders.map(async (order) => {
+        // Fetch order items
+        const rawOrderItems = await OrderItem.find({ orderId: order._id })
+          .populate({
+            path: 'productId',
+            model: 'Product',
+            select: 'name images _id price description'
+          })
+          .lean();
+
+        // Transform order items to match expected frontend structure
+        const orderItems = rawOrderItems.map(item => ({
+          _id: item._id,
+          quantity: item.quantity,
+          price: item.price,
+          product: item.productId, // The populated product data
+          productId: item.productId?._id // Just the product ID
+        }));
+
+        // Fetch user data using Clerk userId as _id
+        const user = await User.findById(order.userId).lean();
+        
+        // Fetch address data
+        const address = await Address.findById(order.addressId).lean();
+
+        return {
+          ...order,
+          orderItems,
+          user,
+          address
+        };
+      })
+    );
+
+    return NextResponse.json({ orders: ordersWithItems });
 
   } catch (error) {
     console.error(error);

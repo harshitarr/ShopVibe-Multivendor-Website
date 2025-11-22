@@ -39,7 +39,12 @@ const ProductDescription = ({ product }) => {
                                         ))}
                                     </div>
                                     <p className="text-sm max-w-lg my-4">{item.review}</p>
-                                    <p className="font-medium text-slate-800">{item.userId?.name || 'Anonymous'}</p>
+                                    <p className="font-medium text-slate-800">
+                                        {item.userId?.name 
+                                            ? item.userId.name.split(' ').filter(part => part && part !== 'null' && part !== '').join(' ') || 'Anonymous'
+                                            : 'Anonymous'
+                                        }
+                                    </p>
                                     <p className="mt-3 font-light">{new Date(item.createdAt).toDateString()}</p>
                                 </div>
                             </div>

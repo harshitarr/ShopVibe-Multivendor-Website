@@ -2,6 +2,7 @@ import dbConnect from "@/lib/mongodb";
 import Store from "@/lib/models/Store";
 import Product from "@/lib/models/Product";
 import { NextResponse } from "next/server";
+import Rating from "@/lib/models/Rating";
 
 export async function GET(request) {
   try {
@@ -29,8 +30,27 @@ export async function GET(request) {
     const products = await Product.find({
       storeId: store._id.toString()
     })
-    .populate('ratings')
     .lean();
+
+    // Manually fetch and calculate ratings for each product
+    for (let product of products) {
+      const ratings = await Rating.find({ productId: product._id.toString() })
+        .populate({
+          path: 'userId',
+          select: 'name image'
+        })
+        .lean();
+      
+      // Calculate average rating
+      const avgRating = ratings.length > 0
+        ? ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length
+        : 0;
+      
+      // Add calculated rating data to product
+      product.ratings = ratings;
+      product.avgRating = Math.round(avgRating * 2) / 2; // Round to nearest 0.5
+      product.totalRatings = ratings.length;
+    }
 
     // Add products to store object
     const storeWithProducts = {

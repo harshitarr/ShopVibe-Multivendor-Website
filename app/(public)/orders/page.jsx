@@ -4,6 +4,8 @@ import PageTitle from "@/components/PageTitle"
 import { useEffect, useState } from "react";
 import OrderItem from "@/components/OrderItem";
 import { useAuth, useUser } from '@clerk/nextjs';
+import { useDispatch } from 'react-redux';
+import { fetUserRatings } from '@/lib/features/rating/ratingSlice';
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Loading from "@/components/Loading";
@@ -13,6 +15,7 @@ export default function Orders() {
 
 const { getToken } = useAuth();
 const { user, isLoaded } = useUser();
+const dispatch = useDispatch();
 
 const [orders, setOrders] = useState([]);
 const [loading, setLoading] = useState(true);
@@ -41,12 +44,14 @@ useEffect(() => {
     if (isLoaded) {
         if (user) {
             fetchOrders();
+            // Fetch user ratings
+            dispatch(fetUserRatings({ getToken }));
         } else {
             router.push('/');
         }
     }
 
-}, [isLoaded, user, getToken]);
+}, [isLoaded, user, getToken, dispatch]);
 
 if (!isLoaded || loading) return <Loading />;
 

@@ -8,6 +8,7 @@ import { fetchProducts } from "@/lib/features/product/productSlice";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { fetchCart, uploadCart } from "@/lib/features/cart/cartSlice";
 import { fetchAddress } from "@/lib/features/address/addressSlice";
+import { fetUserRatings } from "@/lib/features/rating/ratingSlice";
 
 export default function PublicLayout({ children }) {
 const dispatch = useDispatch();
@@ -26,7 +27,8 @@ useEffect(() => {
 if (user) {
 console.log('Loading cart from database...');
 dispatch(fetchCart({ getToken }));
-dispatch(fetchAddress({ getToken }) );
+dispatch(fetchAddress({ getToken }) )
+dispatch(fetUserRatings({ getToken }));
 }
 }, [user, getToken, dispatch]);
 

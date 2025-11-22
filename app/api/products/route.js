@@ -20,14 +20,6 @@ export async function GET(request) {
         if (productId) {
             console.log('API: Fetching single product...');
             const product = await Product.findById(productId)
-                .populate({
-                    path: 'ratings',
-                    select: 'createdAt rating review userId',
-                    populate: {
-                        path: 'userId',
-                        select: 'name image'
-                    }
-                })
                 .populate('storeId', 'name username logo isActive')
                 .lean();
 
@@ -41,6 +33,24 @@ export async function GET(request) {
                 console.log('API: Product store is not active');
                 return NextResponse.json({ error: 'Product not available' }, { status: 404 });
             }
+
+            // Manually fetch ratings for this product
+            const ratings = await Rating.find({ productId: product._id.toString() })
+                .populate({
+                    path: 'userId',
+                    select: 'name image'
+                })
+                .lean();
+            
+            // Calculate average rating
+            const avgRating = ratings.length > 0
+                ? ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length
+                : 0;
+            
+            // Add rating data to product
+            product.ratings = ratings;
+            product.avgRating = Math.round(avgRating * 2) / 2;
+            product.totalRatings = ratings.length;
 
             console.log('API: Single product found successfully');
             return NextResponse.json({ success: true, product });
@@ -60,19 +70,31 @@ export async function GET(request) {
         })));
 
         let products = await Product.find({}) // Remove inStock filter temporarily
-            .populate({
-                path: 'ratings',
-                select: 'createdAt rating review userId',
-                populate: {
-                    path: 'userId',
-                    select: 'name image'
-                }
-            })
             .populate('storeId', 'name username logo isActive')
             .sort({ createdAt: -1 })
             .lean();
 
         console.log('Products after inStock filter:', products.length);
+
+        // Manually fetch and calculate ratings for each product
+        for (let product of products) {
+            const ratings = await Rating.find({ productId: product._id.toString() })
+                .populate({
+                    path: 'userId',
+                    select: 'name image'
+                })
+                .lean();
+            
+            // Calculate average rating
+            const avgRating = ratings.length > 0
+                ? ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length
+                : 0;
+            
+            // Add calculated rating data to product
+            product.ratings = ratings;
+            product.avgRating = Math.round(avgRating * 2) / 2; // Round to nearest 0.5
+            product.totalRatings = ratings.length;
+        }
 
         // Remove products with store isActive false
         // products = products.filter(product => product.storeId?.isActive === true); // Temporarily disabled

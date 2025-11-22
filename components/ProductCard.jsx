@@ -8,14 +8,23 @@ const ProductCard = ({ product }) => {
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
 
-    // Safe MongoDB rating calculation
+    // Use pre-calculated rating from API or fallback to manual calculation
+    const avgRating = product.avgRating || 0;
+    const totalRatings = product.totalRatings || 0;
     const ratings = product.ratings || [];
-    const avgRating = ratings.length > 0
-        ? ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length
-        : 0;
+    
+    // Debug: Log rating information
+    console.log('ProductCard Debug:', {
+        productName: product.name,
+        productId: product._id,
+        avgRating: avgRating,
+        totalRatings: totalRatings,
+        ratingsArray: ratings.length,
+        hasPreCalculatedRating: !!product.avgRating
+    });
 
-    // Round to nearest 0.5 (for half-star support)
-    const rating = Math.round(avgRating * 2) / 2;
+    // Use the pre-calculated rating (already rounded to nearest 0.5)
+    const rating = avgRating;
 
     return (
         <Link href={`/product/${product._id}`} className='group max-xl:mx-auto'>

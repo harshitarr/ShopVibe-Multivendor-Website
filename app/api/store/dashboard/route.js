@@ -5,6 +5,7 @@ import dbConnect from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import Product from "@/lib/models/Product";
 import Rating from "@/lib/models/Rating";
+import User from "@/lib/models/User";
 
 // Get Dashboard Data for Seller (total orders, total earnings, total products)
 export async function GET(request) {
@@ -36,8 +37,8 @@ export async function GET(request) {
     const ratings = await Rating.find({
       productId: { $in: productIds }
     })
-    .populate('user', 'name email image')  // Populate user details
-    .populate('product', 'name images')    // Populate product details
+    .populate('userId', 'name email image')  // Populate user details
+    .populate('productId', 'name images')    // Populate product details
     .lean();
 
     const dashboardData = {

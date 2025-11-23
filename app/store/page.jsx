@@ -84,14 +84,14 @@ export default function Dashboard() {
                             <div>
                                 <div className="flex gap-3">
                                     <Image 
-                                        src={review.user?.image || "/placeholder-user.png"}   // ✅ FIXED
+                                        src={review.userId?.image || "/placeholder-user.png"}
                                         alt="" 
                                         className="w-10 aspect-square rounded-full" 
                                         width={100} 
                                         height={100} 
                                     />
                                     <div>
-                                        <p className="font-medium">{review.user?.name}</p>
+                                        <p className="font-medium">{review.userId?.name}</p>
                                         <p className="font-light text-slate-500">{new Date(review.createdAt).toDateString()}</p>
                                     </div>
                                 </div>
@@ -99,8 +99,8 @@ export default function Dashboard() {
                             </div>
                             <div className="flex flex-col justify-between gap-6 sm:items-end">
                                 <div className="flex flex-col sm:items-end">
-                                    <p className="text-slate-400">{review.product?.category}</p>
-                                    <p className="font-medium">{review.product?.name}</p>
+                                    <p className="text-slate-400">{review.productId?.category}</p>
+                                    <p className="font-medium">{review.productId?.name}</p>
                                     <div className='flex items-center'>
                                         {Array(5).fill('').map((_, idx) => (
                                             <StarIcon 
@@ -113,7 +113,7 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                                 <button 
-                                    onClick={() => router.push(`/product/${review.product?._id || review.product?.id}`)} 
+                                    onClick={() => router.push(`/product/${review.productId?._id || review.productId?.id}`)} 
                                     className="bg-slate-100 px-5 py-2 hover:bg-slate-200 rounded transition-all"
                                 >
                                     View Product

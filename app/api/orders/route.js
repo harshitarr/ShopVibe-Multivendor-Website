@@ -1,7 +1,7 @@
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
-
+import Stripe from "stripe";
 import Order from "@/lib/models/Order";
 import OrderItem from "@/lib/models/OrderItem";
 import Coupon from "@/lib/models/Coupon";
@@ -140,6 +140,7 @@ export async function POST(request) {
       (Array.isArray(sessionClaims?.pla) && sessionClaims.pla.includes("plus"));
 
     const createdOrderIds = [];
+    const createdOrders = [];
 
     for (const [storeId, sellerItems] of groupedByStore.entries()) {
       let subtotal = sellerItems.reduce(
@@ -193,7 +194,11 @@ export async function POST(request) {
       );
 
       createdOrderIds.push(order._id.toString());
+      createdOrders.push(order);
     }
+
+    // Calculate total amount for Stripe payment
+    const fullAmount = createdOrders.reduce((sum, order) => sum + order.total, 0);
 
     // update coupon usage count
     if (coupon) {
@@ -203,6 +208,42 @@ export async function POST(request) {
       ).catch((err) => {
         console.warn("Failed to increment coupon usageCount:", err?.message);
       });
+    }
+
+    if(paymentMethod==='STRIPE'){
+
+        const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+        const origin = await request.headers.get('origin');
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [{
+
+                price_data:{
+                    currency: 'inr',
+                    product_data:{
+                        name:'Order'
+                },
+                unit_amount: Math.round(fullAmount * 100)
+               
+                },
+                 quantity: 1
+            }],
+            expires_at: Math.floor(Date.now() / 1000) + 30*60, // 30 minutes
+            mode: 'payment',
+            success_url:`${origin}/loading?nextUrl=orders`,
+            cancel_url:`${origin}/cart`,
+            metadata:{
+                orderIds: createdOrderIds.join(','),
+                userId,
+                appId:'shopvibe'
+
+            }
+
+
+        })
+
+        return NextResponse.json({session} );
     }
 
     // clear cart

@@ -1,3 +1,27 @@
+// Edit product details
+export async function PUT(request) {
+    try {
+        await dbConnect();
+        const { userId } = getAuth(request);
+        if (!userId) return NextResponse.json({ error: 'No user ID' }, { status: 401 });
+        const storeId = await authSeller(userId);
+        if (!storeId) return NextResponse.json({ error: 'not authorized' }, { status: 401 });
+        const body = await request.json();
+        const { productId, name, description, mrp, price } = body;
+        if (!productId || !name || !description || !mrp || !price) {
+            return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+        }
+        const updated = await Product.findOneAndUpdate(
+            { _id: productId, storeId },
+            { name, description, mrp, price },
+            { new: true }
+        );
+        if (!updated) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+        return NextResponse.json({ message: 'Product updated', product: updated });
+    } catch (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+}
 import authSeller from "@/middlewares/authSeller"
 import { getAuth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"

@@ -2,33 +2,58 @@
 import { PackageIcon, Search, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useUser, useClerk, UserButton, Protect } from '@clerk/nextjs';
 
+
 const Navbar = () => {
-const { user } = useUser();
-const { openSignIn } = useClerk();
-const router = useRouter();
+    const { user } = useUser();
+    const { openSignIn } = useClerk();
+    const router = useRouter();
 
+    const [search, setSearch] = useState('');
+    const cartCount = useSelector(state => state.cart.total);
+    const safeCartCount = Number(cartCount) || 0;
 
-const [search, setSearch] = useState('');
-const cartCount = useSelector(state => state.cart.total);
+    // Store state
+    const [hasStore, setHasStore] = useState(false);
 
-const safeCartCount = Number(cartCount) || 0;
+    useEffect(() => {
+        const checkStore = async () => {
+            if (!user) {
+                setHasStore(false);
+                return;
+            }
+            try {
+                const res = await fetch('/api/store/is-seller');
+                if (!res.ok) return setHasStore(false);
+                const data = await res.json();
+                // Only show if store is approved and active
+                if (data.storeInfo && data.storeInfo.status === 'approved' && data.storeInfo.isActive) {
+                    setHasStore(true);
+                } else {
+                    setHasStore(false);
+                }
+            } catch {
+                setHasStore(false);
+            }
+        };
+        checkStore();
+    }, [user]);
 
-const handleSearch = (e) => {
-    e.preventDefault();
-    router.push(`/shop?search=${search}`);
-};
+    const handleSearch = (e) => {
+        e.preventDefault();
+        router.push(`/shop?search=${search}`);
+    };
 
-const handleOrdersClick = () => {
-    router.push('/orders');
-};
+    const handleOrdersClick = () => {
+        router.push('/orders');
+    };
 
-const handleCartClick = () => {
-    router.push('/cart');
-};
+    const handleCartClick = () => {
+        router.push('/cart');
+    };
 
 return (
     <nav className="relative bg-white">
@@ -52,11 +77,14 @@ return (
                 
 
                 {/* Desktop Menu */}
-                <div className="hidden sm:flex items-center gap-4 lg:gap-8 text-slate-600">
-                    <Link href="/">Home</Link>
-                    <Link href="/shop">Shop</Link>
-                    <Link href="/">About</Link>
-                    <Link href="/">Contact</Link>
+                                <div className="hidden sm:flex items-center gap-4 lg:gap-8 text-slate-600">
+                                        <Link href="/">Home</Link>
+                                        <Link href="/shop">Shop</Link>
+                                        {hasStore && (
+                                            <Link href="/store">Store</Link>
+                                        )}
+                                        <Link href="/">About</Link>
+                                        <Link href="/">Contact</Link>
 
                     <form 
                         onSubmit={handleSearch} 

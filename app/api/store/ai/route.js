@@ -1,126 +1,90 @@
 import authSeller from "@/middlewares/authSeller";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { openai } from "@/configs/openai";
+import Groq from "groq-sdk"; 
 
-async function main(base64Image, mimeType){
+// Initialize Groq Client
+const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY,
+});
+
+async function main(base64Image, mimeType) {
     try {
-        console.log("Calling OpenAI API...");
-        
+        console.log("Calling Groq Vision API...");
+
         const messages = [
             {
-                "role": "system",
-                "content":`
-                        You are a product listing assistant for an e-commerce store.
-                        Your job is to analyze an image of a product and generate
-                        structured data.
-
-                        Respond ONLY with raw JSON (no code block, no markdown, no
-                        explanation).
-                        The JSON must strictly follow this schema:
-                    {
-                        "name": string,  // Short product name
-                        "description": string, // Marketing-friendly
-                        description of the product
-                    } `
+                role: "system",
+                content: `You are a product listing assistant for an e-commerce store.
+                Your job is to analyze an image of a product and generate structured data.
+                
+                Respond ONLY with raw JSON.
+                The JSON must strictly follow this schema:
+                {
+                    "name": string, 
+                    "description": string 
+                }`
             },
             {
-              "role": "user",
-              "content": [
-                {
-                  "type": "text",
-                  "text": "Analyze the image and generate a product name + description.",
-                },
-                {
-                  "type": "image_url",
-                  "image_url": {
-                    "url": `data:${mimeType};base64,${base64Image}`
-                  },
-                },
-              ],
-            }
+                role: "user",
+                content: [
+                    {
+                        type: "text",
+                        text: "Analyze the image and generate a product name + description.",
+                    },
+                    {
+                        type: "image_url",
+                        image_url: {
+                            url: `data:${mimeType};base64,${base64Image}`,
+                        },
+                    },
+                ],
+            },
         ];
 
-        const response = await openai.chat.completions.create({
-            model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-            messages,
+        const response = await groq.chat.completions.create({
+            
+            model: process.env.GROQ_MODEL, 
+            
+            messages: messages,
+            temperature: 0.1,
+            max_tokens: 1024,
+            response_format: { type: "json_object" }, 
         });
 
-        console.log("OpenAI API response received");
+        console.log("Groq API response received");
 
-        const raw = response.choices[0].message.content;
+        const raw = response.choices[0]?.message?.content || "{}";
+        console.log("Raw Groq response:", raw);
 
-        console.log("Raw OpenAI response:", raw);
+        return JSON.parse(raw);
 
-        // remove ```json or ``` wrapper if present
-        const cleaned = raw.replace(/```json|```/g, "").trim();
-
-        console.log("Cleaned response:", cleaned);
-
-        let parsed;
-
-        try {
-            parsed = JSON.parse(cleaned);
-            console.log("Successfully parsed JSON:", parsed);
-        } catch (parseError) {
-            console.error("JSON parse error:", parseError);
-            console.error("Raw content that failed to parse:", cleaned);
-            throw new Error("AI did not return valid JSON");
-        }
-
-        // Validate the response has required fields
-        if (!parsed.name || !parsed.description) {
-            console.error("Invalid response structure:", parsed);
-            throw new Error("AI response missing required fields");
-        }
-
-        return parsed;
-        
     } catch (error) {
         console.error("Error in main function:", error);
-        if (error.message.includes("API key")) {
-            throw new Error("OpenAI API key configuration issue");
-        }
         throw error;
     }
 }
 
+// ... Keep your existing POST function below ...
 export async function POST(request) {
-  try {
-    const { userId } = getAuth(request);
-    if (!userId) {
-      console.error("No userId found in request");
-      return NextResponse.json({ error: 'No user ID' }, { status: 401 });
-    }
+    // (Paste your existing POST logic here)
+    try {
+        const { userId } = getAuth(request);
+        if (!userId) return NextResponse.json({ error: 'No user ID' }, { status: 401 });
 
-    const isSeller = await authSeller(userId);
-    if (!isSeller) {
-      console.error("User is not authorized as seller:", userId);
-      return NextResponse.json({ error: 'not authorized' }, { status: 401 });
-    }
+        const isSeller = await authSeller(userId);
+        if (!isSeller) return NextResponse.json({ error: 'not authorized' }, { status: 401 });
 
-    const body = await request.json();
-    const { base64Image, mimeType } = body;
-    
-    if (!base64Image || !mimeType) {
-      console.error("Missing base64Image or mimeType in request body");
-      return NextResponse.json({ error: 'Missing image data' }, { status: 400 });
-    }
+        const body = await request.json();
+        const { base64Image, mimeType } = body;
 
-    console.log("Processing AI request for image analysis...");
-    const result = await main(base64Image, mimeType);
-    console.log("AI analysis successful:", result);
-    
-    return NextResponse.json({...result});
-  } catch (error) {
-    console.error("AI API Error:", error);
-    console.error("Error details:", {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
-    return NextResponse.json({ 
-      error: error.message || "AI analysis failed" 
-    }, { status: 400 });
-  }
+        if (!base64Image || !mimeType) {
+            return NextResponse.json({ error: 'Missing image data' }, { status: 400 });
+        }
+
+        const result = await main(base64Image, mimeType);
+        return NextResponse.json({ ...result });
+    } catch (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 }

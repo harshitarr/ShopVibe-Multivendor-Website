@@ -3,6 +3,8 @@ import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import Image from "next/image"
 import Loading from "@/components/Loading"
+import dynamic from "next/dynamic"
+const EditProductModal = dynamic(() => import("./EditProductModal"), { ssr: false })
 import { useAuth , useUser } from "@clerk/nextjs"
 import axios from "axios"
 
@@ -15,6 +17,7 @@ export default function StoreManageProducts() {
 
     const [loading, setLoading] = useState(true)
     const [products, setProducts] = useState([])
+    const [editProduct, setEditProduct] = useState(null)
 
     const fetchProducts = async () => {
 
@@ -65,6 +68,11 @@ export default function StoreManageProducts() {
         }
     }, [user])
 
+
+    const handleEditSave = () => {
+        fetchProducts();
+    }
+
     if (loading) return <Loading />
 
     return (
@@ -78,6 +86,7 @@ export default function StoreManageProducts() {
                         <th className="px-4 py-3 hidden md:table-cell">MRP</th>
                         <th className="px-4 py-3">Price</th>
                         <th className="px-4 py-3">Actions</th>
+                        <th className="px-4 py-3">Edit</th>
                     </tr>
                 </thead>
                 <tbody className="text-slate-700">
@@ -99,10 +108,24 @@ export default function StoreManageProducts() {
                                     <span className="dot absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-4"></span>
                                 </label>
                             </td>
+                            <td className="px-4 py-3 text-center">
+                                <button
+                                    className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded transition text-xs"
+                                    onClick={() => setEditProduct(product)}
+                                >
+                                    Edit
+                                </button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+            <EditProductModal
+                product={editProduct}
+                open={!!editProduct}
+                onClose={() => setEditProduct(null)}
+                onSave={handleEditSave}
+            />
         </>
     )
 }

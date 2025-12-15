@@ -84,22 +84,20 @@ export default function StoreAddProduct() {
             //if no images are uploaded then return
             if (!images[1] && !images[2] && !images[3] && !images[4]) {
                 return toast.error("Please upload at least one image")
-               
             }
 
             setLoading(true)
-            
+
             const formData = new FormData()
             formData.append("name", productInfo.name)
             formData.append("description", productInfo.description)
             formData.append("mrp", productInfo.mrp)
             formData.append("price", productInfo.price)
             formData.append("category", productInfo.category)
-            
+
             //Adding images to FormData
             Object.keys(images).forEach((key) => {
-            images[key] && formData.append("images", images[key])
-                
+                images[key] && formData.append("images", images[key])
             })
 
             const token = await getToken()
@@ -121,17 +119,16 @@ export default function StoreAddProduct() {
 
             //Resetting images
             setImages({ 1: null, 2: null, 3: null, 4: null })
+
+            // Reset aiUsed so AI runs for next product
+            setAiUsed(false)
+
             setLoading(false)
         } catch (error) {
-
             toast.error(error.response?.data?.message || error.message)
-            
-        }
-
-        finally {
+        } finally {
             setLoading(false)
         }
-        
     }
 
 

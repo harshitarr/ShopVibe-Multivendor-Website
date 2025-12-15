@@ -15,14 +15,8 @@ const categories = [
 
 const discounts = [
   "10% and above",
-  "20% and above",
-  "30% and above",
   "40% and above",
-  "50% and above",
-  "60% and above",
   "70% and above",
-  "80% and above",
-  "90% and above",
 ];
 
 
@@ -34,8 +28,8 @@ export default function ProductFilter({
 }) {
   return (
     <aside
-      className="bg-white border border-green-600 rounded-lg p-4 w-full max-w-xs md:mb-0 md:mr-4 text-black"
-      style={{ minWidth: 220 }}
+      className="bg-white border border-green-200 shadow-lg rounded-xl p-6 w-full max-w-xs md:mb-0 md:mr-6 text-black sticky top-28 z-20"
+      style={{ minWidth: 240, background: 'rgba(255,255,255,0.97)' }}
     >
       <h2 className="font-bold text-lg mb-4">Filters</h2>
 

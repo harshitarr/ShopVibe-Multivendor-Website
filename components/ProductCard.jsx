@@ -27,8 +27,8 @@ const ProductCard = ({ product }) => {
     const rating = avgRating;
 
     return (
-        <Link href={`/product/${product._id}`} className='group max-xl:mx-auto'>
-            <div className='bg-[#F5F5F5] h-40 sm:w-60 sm:h-68 rounded-lg flex items-center justify-center'>
+        <Link href={`/product/${product._id}`} className='group block w-full h-full'>
+            <div className='bg-[#F5F5F5] h-40 sm:h-68 w-full rounded-lg flex items-center justify-center mb-3 sm:mb-4'>
                 <Image
                     width={500}
                     height={500}
@@ -38,9 +38,9 @@ const ProductCard = ({ product }) => {
                 />
             </div>
 
-            <div className='flex justify-between gap-3 text-sm text-slate-800 pt-2 max-w-60'>
+            <div className='flex justify-between gap-3 text-sm pt-2 w-full'>
                 <div>
-                    <p>{product.name}</p>
+                    <p className="text-green-600 font-medium">{product.name}</p>
 
                     {/* ⭐ Half-star Rendering */}
                     <div className='flex'>
@@ -78,7 +78,7 @@ const ProductCard = ({ product }) => {
                     </div>
                 </div>
 
-                <p>{currency}{product.price}</p>
+                <p className="text-green-600 font-semibold">{currency}{product.price}</p>
             </div>
         </Link>
     )

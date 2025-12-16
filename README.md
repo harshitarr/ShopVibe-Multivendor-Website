@@ -24,7 +24,7 @@ ShopVibe is a modern, full-featured e-commerce platform designed to provide a se
 - Customizable store pages for each seller
 
 ## ⭐ Screenshots
-[!Home](https://github.com/harshitarr/ShopVibe-Multivendor-Website/blob/main/assets/hero.png)
+![Home](https://github.com/harshitarr/ShopVibe-Multivendor-Website/blob/main/assets/hero.png)
 
 ## ⭐ Tech Stack
 

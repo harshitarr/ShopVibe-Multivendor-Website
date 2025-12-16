@@ -14,6 +14,7 @@ const categories = [
 ];
 
 const discounts = [
+  "All",
   "10% and above",
   "40% and above",
   "70% and above",
@@ -45,7 +46,12 @@ export default function ProductFilter({
                   ? "bg-green-600 text-white"
                   : "bg-white text-black"
               }`}
-              onClick={() => setFilters((f) => ({ ...f, category: cat }))}
+              onClick={() =>
+                setFilters((f) => ({
+                  ...f,
+                  category: f.category === cat ? null : cat,
+                }))
+              }
               type="button"
             >
               {cat}
@@ -91,8 +97,13 @@ export default function ProductFilter({
               <input
                 type="radio"
                 name="discount"
-                checked={filters.discount === d}
-                onChange={() => setFilters((f) => ({ ...f, discount: d }))}
+                checked={d === "All" ? filters.discount == null : filters.discount === d}
+                onChange={() =>
+                  setFilters((f) => ({
+                    ...f,
+                    discount: d === "All" ? null : (f.discount === d ? null : d),
+                  }))
+                }
                 className="accent-green-600"
               />
               <span>{d}</span>

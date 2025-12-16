@@ -2,6 +2,9 @@
 
 ShopVibe is a modern, full-featured e-commerce platform designed to provide a seamless shopping experience for both buyers and sellers. The project is built with scalability, performance, and user experience in mind, supporting multi-store management, product discovery, and secure transactions.
 
+## ⭐ Screenshots
+![Home](https://github.com/harshitarr/ShopVibe-Multivendor-Website/blob/main/assets/hero.png)
+
 ## ⭐ Features Implemented
 - Multi-store support: Users can create and manage their own stores
 - Product catalog with advanced filtering (category, price, discount, etc.)
@@ -22,9 +25,6 @@ ShopVibe is a modern, full-featured e-commerce platform designed to provide a se
 - AI integration for product suggestions (if enabled)
 - Modular and scalable codebase with clear separation of concerns
 - Customizable store pages for each seller
-
-## ⭐ Screenshots
-![Home](https://github.com/harshitarr/ShopVibe-Multivendor-Website/blob/main/assets/hero.png)
 
 ## ⭐ Tech Stack
 

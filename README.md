@@ -1,8 +1,8 @@
-# ShopVibe
+# ShopVibe ✨
 
 ShopVibe is a modern, full-featured e-commerce platform designed to provide a seamless shopping experience for both buyers and sellers. The project is built with scalability, performance, and user experience in mind, supporting multi-store management, product discovery, and secure transactions.
 
-## Features Implemented
+## ⭐ Features Implemented
 - Multi-store support: Users can create and manage their own stores
 - Product catalog with advanced filtering (category, price, discount, etc.)
 - Shopping cart and order management
@@ -16,19 +16,17 @@ ShopVibe is a modern, full-featured e-commerce platform designed to provide a se
 - Address management for users
 - AI-powered product recommendations (optional)
 
-## Unique Features
+## ⭐ Unique Features
 - Store approval workflow for new sellers
 - Real-time order tracking and analytics
 - AI integration for product suggestions (if enabled)
 - Modular and scalable codebase with clear separation of concerns
 - Customizable store pages for each seller
 
-## Screenshots
-> Add screenshots of the main pages and features here (e.g., Home, Product Page, Cart, Admin Dashboard, Store Management, etc.)
+## ⭐ Screenshots
+[!Home](https://github.com/harshitarr/ShopVibe-Multivendor-Website/blob/main/assets/hero.png)
 
----
-
-## Tech Stack
+## ⭐ Tech Stack
 
 ### Frontend
 - Next.js (React framework)
@@ -48,7 +46,7 @@ ShopVibe is a modern, full-featured e-commerce platform designed to provide a se
 
 ---
 
-## Environmental Variables
+## ⭐ Environmental Variables
 Create a `.env.local` file in the root directory and add the following variables:
 
 ```
@@ -64,7 +62,7 @@ NEXTAUTH_SECRET=your_nextauth_secret
 
 ---
 
-## Running Environment
+## ⭐ Running Environment
 
 ### Prerequisites
 - Node.js (v18 or above recommended)

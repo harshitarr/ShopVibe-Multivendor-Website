@@ -45,6 +45,9 @@ ShopVibe is a modern, full-featured e-commerce platform designed to provide a se
 - Stripe API (for payments)
 - ImageKit (for image hosting)
 - OpenAI API (optional, for AI features)
+- Grok API
+- Inngest
+- Clerk
 
 ---
 

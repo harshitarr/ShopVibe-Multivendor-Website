@@ -7,13 +7,17 @@ import { useSelector } from 'react-redux'
 const LatestProducts = () => {
 
     const displayQuantity = 4
-    const products = useSelector(state => state.product.list)
+    const products = useSelector(state => state.product?.list) || []
 
     return (
         <div className='px-6 my-30 max-w-6xl mx-auto'>
             <Title title='Latest Products' description={`Showing ${products.length < displayQuantity ? products.length : displayQuantity} of ${products.length} products`} href='/shop' />
             <div className='mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 justify-between'>
-                {products.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, displayQuantity).map((product, index) => (
+                {(Array.isArray(products) ? products : []).slice().sort((a, b) => {
+                    const aDate = a?.createdAt ? new Date(a.createdAt) : 0;
+                    const bDate = b?.createdAt ? new Date(b.createdAt) : 0;
+                    return bDate - aDate;
+                }).slice(0, displayQuantity).map((product, index) => (
                     <ProductCard key={index} product={product} />
                 ))}
             </div>

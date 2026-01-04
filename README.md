@@ -1,4 +1,4 @@
-# ShopVibe ✨
+# ShopVibe (Full-Stack Multi-Vendor E-Commerce Platform) ✨
 
 ShopVibe is a modern, full-featured e-commerce platform designed to provide a seamless shopping experience for both buyers and sellers. The project is built with scalability, performance, and user experience in mind, supporting multi-store management, product discovery, and secure transactions.
 

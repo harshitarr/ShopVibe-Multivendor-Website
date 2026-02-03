@@ -60,7 +60,7 @@ export async function GET(request) {
     const stores = await Store.find({
       status: { $in: ["pending", "rejected"] }
     })
-    .populate('userId')   // ✅ Works now because User model is imported
+    .populate('userId')
     .lean();
 
     // Transform the data to match the expected structure in the component

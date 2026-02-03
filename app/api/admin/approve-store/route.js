@@ -45,7 +45,7 @@ export async function POST(request) {
 }
 
 
-// Get all pending and rejected stores
+// Get all pending and rejected stores.
 export async function GET(request) {
   try {
     await dbConnect();

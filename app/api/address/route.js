@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import dbConnect from "@/lib/mongodb"
 import Address from "@/lib/models/Address"
 
-// Add new address
+// Add new address to db
 export async function POST(request) {
     try {
         await dbConnect()
